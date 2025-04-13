@@ -20,7 +20,7 @@ export default function NewProjectModal({ onClose, onSubmit, initialData }: NewP
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    visibility: 'private' as 'public' | 'private',
+    //visibility: 'private' as 'public' | 'private',
     problem: '',
     targetAudience: '',
     stage: 'idea' as 'idea' | 'mvp' | 'fundraising' | 'launched',
@@ -185,7 +185,7 @@ export default function NewProjectModal({ onClose, onSubmit, initialData }: NewP
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <label className={`block text-sm font-medium ${themeClasses.text} mb-2`}>Project Visibility</label>
             <div className="flex gap-4">
               <button type="button" onClick={() => setFormData({ ...formData, visibility: 'public' })} className={`flex-1 px-4 py-3 rounded-lg border ${formData.visibility === 'public' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : `${themeClasses.border} ${themeClasses.button} ${themeClasses.text}`}`}>
@@ -195,7 +195,7 @@ export default function NewProjectModal({ onClose, onSubmit, initialData }: NewP
                 <Lock className="h-5 w-5" /> Private
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-4">
             <button type="button" onClick={onClose} className={`px-6 py-2 rounded-lg ${themeClasses.button} ${themeClasses.text}`}>
