@@ -439,7 +439,7 @@ export default function ProjectDetails() {
       if (!project?.tags?.length) return;
 
       try {
-        await fetch('/api/connections', {
+        const res = await fetch('/api/connections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
