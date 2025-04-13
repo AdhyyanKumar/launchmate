@@ -357,9 +357,8 @@ export default function ProjectDetails() {
   const fetchProjects = useProjectStore(state => state.loadProjects);
   const { user } = useAuthStore();
   const [aiPitch, setAiPitch] = useState('');
-  const [aiUpdates, setAiUpdates] = useState('');
+  const [aiUpdates, setAiUpdates] = useState<{ content: string; createdAt: string }[]>([]);
   const [loading, setLoading] = useState(false);
-
 
   const project = projects.find(p => p.id === id);
   if (!project) {
@@ -378,6 +377,25 @@ export default function ProjectDetails() {
       </div>
     );
   }
+
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      if (!project) return;
+      try {
+        const res = await fetch(`/api/updates.mjs?id=${project.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAiUpdates(data.aiUpdates || []);
+        } else {
+          console.error('Failed to fetch updates');
+        }
+      } catch (err) {
+        console.error('Error fetching updates:', err);
+      }
+    };
+  
+    fetchUpdates();
+  }, [project]);
 
   // useEffect(() => {
   //   const runGemini = async () => {
@@ -634,8 +652,8 @@ export default function ProjectDetails() {
               Gemini AI: Latest Industry Updates
             </h3>
     
-            {Array.isArray(project.aiUpdates) && project?.aiUpdates?.length > 0 ? (
-              project.aiUpdates
+            {aiUpdates.length > 0 ? (
+              aiUpdates
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .map((update, index) => (
                   <div key={index} className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>

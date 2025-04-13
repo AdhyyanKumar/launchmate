@@ -8,16 +8,25 @@ export default async function handler(req, res) {
   const projects = db.collection('projects');
 
   try {
+    // 👉 GET: Return AI updates for a given project
+    if (req.method === 'GET') {
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'Missing project ID' });
+
+      const project = await projects.findOne({ _id: new ObjectId(id) });
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      return res.status(200).json({ aiUpdates: project.aiUpdates || [] });
+    }
+
+    // 👉 POST: Push a new AI update to the project
     if (req.method === 'POST') {
       const { id, content } = req.body;
-
-      if (!id || !content) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
+      if (!id || !content) return res.status(400).json({ error: 'Missing required fields' });
 
       const update = {
         content,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
 
       const result = await projects.updateOne(
