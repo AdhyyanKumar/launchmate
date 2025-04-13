@@ -463,7 +463,7 @@ function Dashboard() {
         {/* Logout Button */}
         <div className="p-4 border-t border-gray-200">
           <button
-            onClick={handleLogout}
+            onClick={() => window.location.reload()}
             className="flex items-center gap-3 w-full px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
           >
             <LogOut className="h-5 w-5" />
