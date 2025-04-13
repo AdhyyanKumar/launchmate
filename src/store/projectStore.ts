@@ -44,7 +44,7 @@ interface ProjectState {
     phaseId: string,
     milestoneTitle: string,
     taskIndex: number
-  ) => void;
+  ) => Promise<void>;
 }
 
 const milestoneTemplates: Project['milestones'] = {
@@ -58,7 +58,7 @@ const milestoneTemplates: Project['milestones'] = {
         { title: 'Define core problem and solution', completed: false },
         { title: 'Research market size and potential', completed: false },
         { title: 'Identify target audience', completed: false },
-        { title: 'Document initial business model', completed: false }
+        { title: 'Document initial business model', completed: false },
       ]
     }
   ],
@@ -237,57 +237,55 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ),
     })),
 
-  toggleMilestoneTask: (projectId, phaseId, milestoneTitle, taskIndex) => {
-    set((state) => {
-      const updatedProjects = state.projects.map((project) => {
-        if (project.id !== projectId) return project;
+  toggleMilestoneTask: async (projectId, phaseId, milestoneTitle, taskIndex) => {
+    const state = get();
+    const updatedProjects = state.projects.map((project) => {
+      if (project.id !== projectId) return project;
 
-        const updatedProject = { ...project };
-        const currentMilestones = updatedProject.milestones?.[phaseId] || [];
+      const updatedProject = { ...project };
+      const currentMilestones = updatedProject.milestones?.[phaseId] || [];
 
-        const updatedMilestones = currentMilestones.map((milestone) => {
-          if (milestone.title !== milestoneTitle) return milestone;
+      const updatedMilestones = currentMilestones.map((milestone) => {
+        if (milestone.title !== milestoneTitle) return milestone;
 
-          const updatedTasks = milestone.tasks.map((task, index) =>
-            index === taskIndex ? { ...task, completed: !task.completed } : task
-          );
+        const updatedTasks = milestone.tasks.map((task, index) =>
+          index === taskIndex ? { ...task, completed: !task.completed } : task
+        );
 
-          return {
-            ...milestone,
-            tasks: updatedTasks,
-            completed: updatedTasks.every((t) => t.completed),
-          };
-        });
-
-        updatedProject.milestones = {
-          ...updatedProject.milestones,
-          [phaseId]: updatedMilestones,
+        return {
+          ...milestone,
+          tasks: updatedTasks,
+          completed: updatedTasks.every((t) => t.completed),
         };
-
-        const allTasksDone = updatedMilestones.every(m => m.completed);
-        const phaseOrder = ['idea', 'validation', 'mvp', 'early_users', 'scaling'];
-        const currentIndex = phaseOrder.indexOf(phaseId);
-        const nextPhase = phaseOrder[currentIndex + 1];
-
-        if (allTasksDone && nextPhase && !updatedProject.milestones?.[nextPhase]) {
-          updatedProject.stage = nextPhase as Project['stage'];
-          updatedProject.milestones = {
-            ...updatedProject.milestones,
-            [nextPhase]: milestoneTemplates[nextPhase]
-          };
-
-          get().updateProject(projectId, {
-            stage: updatedProject.stage,
-            milestones: updatedProject.milestones
-          });
-        } else {
-          get().updateProject(projectId, { milestones: updatedProject.milestones });
-        }
-
-        return updatedProject;
       });
 
-      return { projects: updatedProjects };
+      updatedProject.milestones = {
+        ...updatedProject.milestones,
+        [phaseId]: updatedMilestones,
+      };
+
+      const allTasksDone = updatedMilestones.every((m) => m.completed);
+      const phaseOrder = ['idea', 'validation', 'mvp', 'early_users', 'scaling'];
+      const currentIndex = phaseOrder.indexOf(phaseId);
+      const nextPhase = phaseOrder[currentIndex + 1];
+
+      if (allTasksDone && nextPhase && !updatedProject.milestones?.[nextPhase]) {
+        updatedProject.stage = nextPhase as Project['stage'];
+        updatedProject.milestones[nextPhase] = milestoneTemplates[nextPhase];
+      }
+
+      return updatedProject;
     });
+
+    set({ projects: updatedProjects });
+
+    const updated = updatedProjects.find(p => p.id === projectId);
+    if (updated) {
+      await get().updateProject(projectId, {
+        stage: updated.stage,
+        milestones: updated.milestones,
+      });
+      await get().loadProjects();
+    }
   }
 }));
