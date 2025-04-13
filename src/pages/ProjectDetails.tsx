@@ -596,64 +596,59 @@ export default function ProjectDetails() {
 
             {/* Current Phase Milestones */}
             <div className="space-y-4">
-              <h4 className={`font-medium ${themeClasses.text}`}>Current Phase Milestones</h4>
+              <h4 className={`font-medium ${themeClasses.text}`}>Current Phase Tasks</h4>
               {projectMilestones.map((milestone, index) => (
                 <div
                   key={milestone.title}
                   className={`${themeClasses.card} border ${themeClasses.border} rounded-lg overflow-hidden`}
                 >
-                  <button
-                    onClick={() => toggleMilestone(project.id, milestone.title)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      {milestone.completed ? (
-                        <CheckCircle className="h-6 w-6 text-green-500" />
-                      ) : (
-                        <Circle className="h-6 w-6 text-gray-400" />
-                      )}
-                      <div className="text-left">
+                  <div className="p-4">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="flex-1">
                         <h4 className={`font-medium ${themeClasses.text}`}>{milestone.title}</h4>
                         <p className="text-sm text-gray-500">{milestone.description}</p>
                       </div>
-                    </div>
-                    {expandedMilestones[project.id] === milestone.title ? (
-                      <ChevronUp className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-400" />
-                    )}
-                  </button>
-
-                  {isMilestoneExpanded(milestone.title) && (
-                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Clock className="h-4 w-4" />
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm text-gray-500">
                           Due: {new Date(milestone.dueDate).toLocaleDateString()}
                         </div>
-                        
-                        <div className="space-y-2">
-                          {milestone.tasks.map((task, taskIndex) => (
-                            <button
-                            type="button"
-                            onClick={() => handleTaskToggle(project.id, currentPhase, milestone.title, taskIndex)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left"
-                          >
-                            {task.completed ? (
-                              <CheckCircle className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-gray-400" />
-                            )}
-                            <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : themeClasses.text}`}>
-                              {task.title}
-                            </span>
-                          </button>
-                          
-                          ))}
+                        <div className="text-sm text-gray-500">
+                          {milestone.tasks.filter(t => t.completed).length} / {milestone.tasks.length} completed
                         </div>
                       </div>
                     </div>
-                  )}
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                      <div 
+                        className="bg-indigo-600 h-2.5 rounded-full" 
+                        style={{ 
+                          width: `${(milestone.tasks.filter(t => t.completed).length / milestone.tasks.length) * 100}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <div className="space-y-2">
+                      {milestone.tasks.map((task, taskIndex) => (
+                        <div
+                          key={taskIndex}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleTaskToggle(project.id, currentPhase, milestone.title, taskIndex)}
+                            className="flex items-center gap-3 w-full text-left group"
+                          >
+                            {task.completed ? (
+                              <CheckCircle className="h-5 w-5 text-green-500 group-hover:text-green-600" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                            )}
+                            <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : themeClasses.text} group-hover:text-indigo-600`}>
+                              {task.title}
+                            </span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
