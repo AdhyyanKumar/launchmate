@@ -8,7 +8,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const message = req.body?.message;
+    const buffers = await new Promise<Buffer>((resolve, reject) => {
+        const chunks: any[] = [];
+        req.on('data', (chunk) => chunks.push(chunk));
+        req.on('end', () => resolve(Buffer.concat(chunks)));
+        req.on('error', reject);
+      });
+      const body = JSON.parse(buffers.toString());
+      const message = body.message;      
     const apiKey = process.env.VITE_GEMINI_API_KEY;
 
     console.log("🌐 Request Received");
