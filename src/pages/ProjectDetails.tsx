@@ -524,9 +524,7 @@ export default function ProjectDetails() {
 
   const currentPhase = project.stage || 'idea';
   const currentPhaseIndex = phases.findIndex(phase => phase.id === currentPhase);
-  // TEMP fallback for old projects without milestones
-if (!project.milestones) {
-  project.milestones = {
+  const defaultMilestoneTemplates = {
     idea: [
       {
         title: 'Idea Development',
@@ -540,11 +538,71 @@ if (!project.milestones) {
         dueDate: new Date().toISOString(),
         completed: false,
       },
-    ]
+    ],
+    validation: [
+      {
+        title: 'Market Validation',
+        description: 'Test your idea with potential users',
+        tasks: [
+          { title: 'Create user interview script', completed: false },
+          { title: 'Conduct 25 user interviews', completed: false },
+          { title: 'Analyze feedback and insights', completed: false },
+          { title: 'Refine idea based on feedback', completed: false },
+        ],
+        dueDate: new Date().toISOString(),
+        completed: false,
+      },
+    ],
+    mvp: [
+      {
+        title: 'Value Proposition',
+        description: 'Define value proposition and MVP scope',
+        tasks: [
+          { title: 'Define core features for MVP', completed: false },
+          { title: 'Create feature prioritization matrix', completed: false },
+          { title: 'Set development milestones', completed: false },
+          { title: 'Create MVP timeline', completed: false },
+        ],
+        dueDate: new Date().toISOString(),
+        completed: false,
+      },
+    ],
+    early_users: [
+      {
+        title: 'Early User Testing',
+        description: 'Launch and test with initial users',
+        tasks: [
+          { title: 'Launch MVP to test group', completed: false },
+          { title: 'Collect feedback from users', completed: false },
+          { title: 'Track engagement metrics', completed: false },
+          { title: 'Implement critical fixes', completed: false },
+        ],
+        dueDate: new Date().toISOString(),
+        completed: false,
+      },
+    ],
+    scaling: [
+      {
+        title: 'Growth & Fundraising',
+        description: 'Scale product and secure funding',
+        tasks: [
+          { title: 'Track key growth metrics', completed: false },
+          { title: 'Create investor pitch deck', completed: false },
+          { title: 'Develop scaling roadmap', completed: false },
+          { title: 'Begin investor outreach', completed: false },
+        ],
+        dueDate: new Date().toISOString(),
+        completed: false,
+      },
+    ],
   };
-}
-
+  
+  if (!project.milestones) {
+    project.milestones = defaultMilestoneTemplates;
+  }
+  
   const projectMilestones = project.milestones?.[currentPhase] || [];
+  
   const completedMilestones = projectMilestones.filter(m => m.completed).length;
   const totalMilestones = projectMilestones.length;
 

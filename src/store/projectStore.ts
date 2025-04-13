@@ -9,7 +9,7 @@ export interface Project {
   lastEdited: string;
   dateCreated: string;
   collaborators: string[];
-  stage: 'idea' | 'mvp' | 'fundraising' | 'launched';
+  stage: 'idea' | 'validation' | 'mvp' | 'early_users' | 'scaling';
   favorite: boolean;
   tags: string[];
   problem: string;
@@ -47,6 +47,79 @@ interface ProjectState {
   ) => void;
 }
 
+const milestoneTemplates: Project['milestones'] = {
+  idea: [
+    {
+      title: 'Idea Development',
+      description: 'Flesh out your idea and conduct initial research',
+      dueDate: new Date().toISOString(),
+      completed: false,
+      tasks: [
+        { title: 'Define core problem and solution', completed: false },
+        { title: 'Research market size and potential', completed: false },
+        { title: 'Identify target audience', completed: false },
+        { title: 'Document initial business model', completed: false }
+      ]
+    }
+  ],
+  validation: [
+    {
+      title: 'Market Validation',
+      description: 'Test your idea with potential users',
+      dueDate: new Date().toISOString(),
+      completed: false,
+      tasks: [
+        { title: 'Create user interview script', completed: false },
+        { title: 'Conduct 25 user interviews', completed: false },
+        { title: 'Analyze feedback and insights', completed: false },
+        { title: 'Refine idea based on feedback', completed: false }
+      ]
+    }
+  ],
+  mvp: [
+    {
+      title: 'Value Proposition',
+      description: 'Define value proposition and MVP scope',
+      dueDate: new Date().toISOString(),
+      completed: false,
+      tasks: [
+        { title: 'Define core features for MVP', completed: false },
+        { title: 'Create feature prioritization matrix', completed: false },
+        { title: 'Set development milestones', completed: false },
+        { title: 'Create MVP timeline', completed: false }
+      ]
+    }
+  ],
+  early_users: [
+    {
+      title: 'Early User Testing',
+      description: 'Launch and test with initial user group',
+      dueDate: new Date().toISOString(),
+      completed: false,
+      tasks: [
+        { title: 'Launch MVP to test group', completed: false },
+        { title: 'Collect feedback from users', completed: false },
+        { title: 'Track engagement metrics', completed: false },
+        { title: 'Implement critical fixes', completed: false }
+      ]
+    }
+  ],
+  scaling: [
+    {
+      title: 'Growth & Fundraising',
+      description: 'Scale the product and secure funding',
+      dueDate: new Date().toISOString(),
+      completed: false,
+      tasks: [
+        { title: 'Track key growth metrics', completed: false },
+        { title: 'Create investor pitch deck', completed: false },
+        { title: 'Develop scaling roadmap', completed: false },
+        { title: 'Begin investor outreach', completed: false }
+      ]
+    }
+  ]
+};
+
 export const useProjectStore = create<ProjectState>((set, get) => ({
   projects: [],
   loading: false,
@@ -64,6 +137,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         visibility: p.visibility || 'private',
         favorite: p.favorite || false,
         collaborators: p.collaborators || [],
+        milestones: p.milestones || milestoneTemplates,
       }));
       set({ projects: mapped });
     } catch (error) {
@@ -75,27 +149,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   addProject: async (projectWithoutId) => {
     try {
-      const defaultMilestones = {
-        idea: [
-          {
-            title: 'Idea Development',
-            description: 'Flesh out your idea and conduct initial research',
-            tasks: [
-              { title: 'Define core problem and solution', completed: false },
-              { title: 'Research market size and potential', completed: false },
-              { title: 'Identify target audience', completed: false },
-              { title: 'Document initial business model', completed: false },
-            ],
-            dueDate: new Date().toISOString(),
-            completed: false
-          }
-        ]
-      };
-
       const res = await fetch('/api/projects.mjs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...projectWithoutId, milestones: defaultMilestones })
+        body: JSON.stringify({ ...projectWithoutId, milestones: milestoneTemplates })
       });
 
       const text = await res.text();
@@ -180,20 +237,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ),
     })),
 
-  toggleMilestoneTask: (
-    projectId,
-    phaseId,
-    milestoneTitle,
-    taskIndex
-  ) => {
+  toggleMilestoneTask: (projectId, phaseId, milestoneTitle, taskIndex) => {
     set((state) => {
       const updatedProjects = state.projects.map((project) => {
         if (project.id !== projectId) return project;
 
         const updatedProject = { ...project };
-        const phaseMilestones = updatedProject.milestones?.[phaseId] || [];
+        const currentMilestones = updatedProject.milestones?.[phaseId] || [];
 
-        const updatedMilestones = phaseMilestones.map((milestone) => {
+        const updatedMilestones = currentMilestones.map((milestone) => {
           if (milestone.title !== milestoneTitle) return milestone;
 
           const updatedTasks = milestone.tasks.map((task, index) =>
@@ -211,6 +263,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           ...updatedProject.milestones,
           [phaseId]: updatedMilestones,
         };
+
+        const allTasksDone = updatedMilestones.every(m => m.completed);
+        const phaseOrder = ['idea', 'validation', 'mvp', 'early_users', 'scaling'];
+        const currentIndex = phaseOrder.indexOf(phaseId);
+        const nextPhase = phaseOrder[currentIndex + 1];
+
+        if (allTasksDone && nextPhase && !updatedProject.milestones?.[nextPhase]) {
+          updatedProject.stage = nextPhase as Project['stage'];
+          updatedProject.milestones = {
+            ...updatedProject.milestones,
+            [nextPhase]: milestoneTemplates[nextPhase]
+          };
+
+          get().updateProject(projectId, {
+            stage: updatedProject.stage,
+            milestones: updatedProject.milestones
+          });
+        } else {
+          get().updateProject(projectId, { milestones: updatedProject.milestones });
+        }
 
         return updatedProject;
       });
