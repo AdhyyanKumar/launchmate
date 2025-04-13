@@ -11,10 +11,16 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const email = req.query.email;
       if (!email) return res.status(400).json({ error: 'Missing email' });
-
-      const result = await projects.find({ ownerEmail: email }).toArray();
+    
+      const result = await projects.find({
+        $or: [
+          { ownerEmail: email },
+          { collaborators: email }
+        ]
+      }).toArray();
+    
       return res.status(200).json(result);
-    }
+    }    
 
     if (req.method === 'POST') {
       const { title, description, problem, targetAudience, tags, ownerEmail } = req.body;
@@ -30,8 +36,12 @@ export default async function handler(req, res) {
         tags: tags || [],
         ownerEmail,
         stage: 'idea',
-        lastEdited: new Date().toISOString()
+        visibility: 'private',
+        collaborators: [],
+        lastEdited: new Date().toISOString(),
+        dateCreated: new Date().toISOString()
       };
+      
 
       const result = await projects.insertOne(newProject);
       return res.status(201).json({ ...newProject, id: result.insertedId });
