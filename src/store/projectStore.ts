@@ -15,6 +15,7 @@ export interface Project {
   problem: string;
   targetAudience: string;
   ownerEmail: string;
+  aiUpdates?: { content: string; createdAt: string }[];
 }
 
 interface ProjectState {

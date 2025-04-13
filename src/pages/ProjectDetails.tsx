@@ -630,19 +630,38 @@ export default function ProjectDetails() {
       content: (
         <div className="space-y-6">
           <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-            <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Gemini AI: Latest Industry Updates</h3>
-      
-            {aiUpdates ? (
-              <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
-                <p className="text-gray-500 whitespace-pre-line">{aiUpdates}</p>
-              </div>
+            <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>
+              Gemini AI: Latest Industry Updates
+            </h3>
+    
+            {Array.isArray(project.aiUpdates) && project?.aiUpdates?.length > 0 ? (
+              project.aiUpdates
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .map((update, index) => (
+                  <div key={index} className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <Bell className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className={`font-medium ${themeClasses.text}`}>AI Insight</h4>
+                        <p className="text-sm text-gray-400 mb-1">
+                          {new Date(update.createdAt).toLocaleString()}
+                        </p>
+                        <p className={`text-sm ${themeClasses.subtext} whitespace-pre-line`}>
+                          {update.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
             ) : (
-              <div className="text-sm text-gray-400">Generating updates...</div>
+              <div className="text-sm text-gray-400">No updates yet. Hang tight, insights are on the way!</div>
             )}
           </div>
         </div>
-      )      
-    },
+      )
+    },    
     {
       id: 'pitch',
       label: 'Elevator Pitch',
