@@ -3,21 +3,25 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY!);
 
+type ProjectInfo = {
+  title: string;
+  description: string;
+  problem: string;
+  targetAudience: string;
+  tags: string[];
+};
+
+type PitchParams = {
+  audience: string;
+  venue: string;
+  goal: string;
+  duration: string;
+};
+
 export async function generateElevatorPitch(
-  project: {
-    title: string;
-    description: string;
-    problem: string;
-    targetAudience: string;
-    tags: string[];
-  },
-  params: {
-    audience: string;
-    venue: string;
-    goal: string;
-    duration: string;
-  }
-) {
+  project: ProjectInfo,
+  params: PitchParams
+): Promise<string> {
   const prompt = `
 You are helping a founder create a ${params.duration}-minute pitch for their startup.
 
@@ -36,23 +40,32 @@ Pitch Setting:
 Return a professional, persuasive pitch tailored for this setting.
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error("Error generating elevator pitch:", error);
+    return "Failed to generate elevator pitch.";
+  }
 }
-
 
 export async function generateProjectUpdates(project: {
   title: string;
   tags: string[];
-}) {
+}): Promise<string> {
   const prompt = `
 Give 3 current startup updates related to these tags: ${project.tags.join(", ")}.
 Include: industry insights, potential competitors, or market alerts.
 Title: ${project.title}
 `;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error("Error generating project updates:", error);
+    return "Failed to fetch updates.";
+  }
 }
