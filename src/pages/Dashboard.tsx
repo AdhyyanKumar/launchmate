@@ -45,6 +45,7 @@ function Dashboard() {
   const [sortBy, setSortBy] = useState<ProjectSort>('lastEdited');
   const [searchTerm, setSearchTerm] = useState('');
   const [emailInput, setEmailInput] = useState<Record<string, string>>({});
+  const [editingProject, setEditingProject] = useState<any>(null);
 
   useEffect(() => {
     document.body.className = theme;
@@ -148,8 +149,9 @@ function Dashboard() {
     if (!project) return;
 
     switch (action) {
-      case 'rename':
-        // Implement rename logic
+      case 'edit':
+        setEditingProject(project);
+        setShowNewProjectModal(true);
         break;
       case 'duplicate': {
         const newProject = {
@@ -256,16 +258,16 @@ function Dashboard() {
                 {showProjectMenu === project.id && (
                   <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg ${getThemeClasses().card} ring-1 ring-black ring-opacity-5 z-10`}>
                     <div className="py-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProjectAction(project.id, 'rename');
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 text-sm ${getThemeClasses().text} ${getThemeClasses().hover} w-full`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Rename
-                      </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProjectAction(project.id, 'edit');
+                      }}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm ${getThemeClasses().text} ${getThemeClasses().hover} w-full`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -607,8 +609,12 @@ function Dashboard() {
       {/* New Project Modal */}
       {showNewProjectModal && (
         <NewProjectModal
-          onClose={() => setShowNewProjectModal(false)}
+          onClose={() => {
+            setShowNewProjectModal(false);
+            setEditingProject(null);
+          }}
           onSubmit={handleNewProject}
+          initialData={editingProject}
         />
       )}
 
