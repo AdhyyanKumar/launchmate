@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../store/projectStore';
 import { useThemeStore, getThemeClasses } from '../store/themeStore';
 import pptxgen from 'pptxgenjs';
 import { useAuthStore } from '../store/authStore';
+import { generateElevatorPitch, generateProjectUpdates } from '../hooks/useGemini';
 import {
   ArrowLeft, Users, Milestone, Bell, MessageSquare, Link, Calendar, Target, ChevronRight,
   Star,
@@ -360,6 +361,9 @@ export default function ProjectDetails() {
   const [showMilestoneSummary, setShowMilestoneSummary] = useState(false);
   const fetchProjects = useProjectStore(state => state.loadProjects);
   const { user } = useAuthStore();
+  const [aiPitch, setAiPitch] = useState('');
+  const [aiUpdates, setAiUpdates] = useState('');
+
   const project = projects.find(p => p.id === id);
   if (!project) {
     return (
@@ -377,6 +381,25 @@ export default function ProjectDetails() {
       </div>
     );
   }
+
+  useEffect(() => {
+    const runGemini = async () => {
+      if (!project) return;
+  
+      const pitch = await generateElevatorPitch(project, {
+        audience: "investors",
+        venue: "demo day",
+        goal: "funding",
+        duration: "1"
+      });
+      const updates = await generateProjectUpdates(project);
+  
+      setAiPitch(pitch);
+      setAiUpdates(updates);
+    };
+  
+    runGemini();
+  }, [project]);
 
   // 👇 Milestone expansion toggle per-project
   const toggleMilestone = (projectId: string, milestoneTitle: string) => {
@@ -597,48 +620,18 @@ export default function ProjectDetails() {
       content: (
         <div className="space-y-6">
           <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-            <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Latest Updates</h3>
-            
-            <div className="space-y-6">
-              {[
-                {
-                  title: 'Industry Insight',
-                  message: `${project.tags[0] || 'Tech'} startups raised $200M this quarter—explore opportunities in this space`,
-                  type: 'insight'
-                },
-                {
-                  title: 'Market Analysis',
-                  message: 'Your target audience overlaps with emerging market trends',
-                  type: 'analysis'
-                },
-                {
-                  title: 'Competition Alert',
-                  message: 'New competitor entered the market - review your positioning',
-                  type: 'alert'
-                }
-              ].map((update, index) => (
-                <div key={index} className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-full ${
-                      update.type === 'insight' ? 'bg-blue-100' :
-                      update.type === 'analysis' ? 'bg-green-100' : 'bg-yellow-100'
-                    } flex items-center justify-center`}>
-                      <Bell className={`h-5 w-5 ${
-                        update.type === 'insight' ? 'text-blue-600' :
-                        update.type === 'analysis' ? 'text-green-600' : 'text-yellow-600'
-                      }`} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className={`font-medium ${themeClasses.text}`}>{update.title}</h4>
-                      <p className="text-gray-500 mt-1">{update.message}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Gemini AI: Latest Industry Updates</h3>
+      
+            {aiUpdates ? (
+              <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
+                <p className="text-gray-500 whitespace-pre-line">{aiUpdates}</p>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-400">Generating updates...</div>
+            )}
           </div>
         </div>
-      )
+      )      
     },
     {
       id: 'pitch',
@@ -657,20 +650,21 @@ export default function ProjectDetails() {
                 </h4>
                 <PitchParametersForm
                   onSubmit={async (params) => {
-                    // Create a new presentation
-                    const pres = new pptxgen();
+                    const pitch = await generateElevatorPitch(project, params);
+                    setAiPitch(pitch);
 
-                    // Title slide
+                    const pres = new pptxgen();
+                    // Title Slide
                     const slide1 = pres.addSlide();
                     slide1.addText(project.title, {
                       x: 1,
                       y: 1,
                       w: '80%',
                       fontSize: 44,
-                      color: '363636',
-                      bold: true
+                      bold: true,
+                      color: '363636'
                     });
-                    slide1.addText(project.description, {
+                    slide1.addText(`Presented to ${params.audience} at ${params.venue}`, {
                       x: 1,
                       y: 2.5,
                       w: '80%',
@@ -678,14 +672,14 @@ export default function ProjectDetails() {
                       color: '666666'
                     });
 
-                    // Problem slide
+                    // Problem Slide
                     const slide2 = pres.addSlide();
                     slide2.addText('The Problem', {
                       x: 1,
                       y: 0.5,
                       fontSize: 32,
-                      color: '363636',
-                      bold: true
+                      bold: true,
+                      color: '363636'
                     });
                     slide2.addText(project.problem, {
                       x: 1,
@@ -695,14 +689,14 @@ export default function ProjectDetails() {
                       color: '666666'
                     });
 
-                    // Solution slide
+                    // Solution Slide
                     const slide3 = pres.addSlide();
                     slide3.addText('Our Solution', {
                       x: 1,
                       y: 0.5,
                       fontSize: 32,
-                      color: '363636',
-                      bold: true
+                      bold: true,
+                      color: '363636'
                     });
                     slide3.addText(project.description, {
                       x: 1,
@@ -712,16 +706,35 @@ export default function ProjectDetails() {
                       color: '666666'
                     });
 
-                    // Market slide
+                    // Gemini Pitch Slide
                     const slide4 = pres.addSlide();
-                    slide4.addText('Target Market', {
+                    slide4.addText('Elevator Pitch', {
                       x: 1,
                       y: 0.5,
                       fontSize: 32,
-                      color: '363636',
-                      bold: true
+                      bold: true,
+                      color: '363636'
                     });
-                    slide4.addText(project.targetAudience, {
+                    slide4.addText(pitch, {
+                      x: 1,
+                      y: 1.5,
+                      w: '80%',
+                      h: 4,
+                      fontSize: 18,
+                      color: '444444',
+                      wrap: true
+                    });
+
+                    // Target Audience Slide
+                    const slide5 = pres.addSlide();
+                    slide5.addText('Target Market', {
+                      x: 1,
+                      y: 0.5,
+                      fontSize: 32,
+                      bold: true,
+                      color: '363636'
+                    });
+                    slide5.addText(project.targetAudience, {
                       x: 1,
                       y: 1.5,
                       w: '80%',
@@ -729,23 +742,35 @@ export default function ProjectDetails() {
                       color: '666666'
                     });
 
-                    // Traction slide (if in later stages)
+                    // Optional Traction Slide
                     if (project.stage !== 'idea') {
-                      const slide5 = pres.addSlide();
-                      slide5.addText('Traction & Milestones', {
+                      const slide6 = pres.addSlide();
+                      slide6.addText('Traction & Milestones', {
                         x: 1,
                         y: 0.5,
                         fontSize: 32,
-                        color: '363636',
-                        bold: true
+                        bold: true,
+                        color: '363636'
                       });
-                      // Add traction metrics here
+                      slide6.addText('We are actively progressing through startup phases with milestones achieved.', {
+                        x: 1,
+                        y: 1.5,
+                        w: '80%',
+                        fontSize: 20,
+                        color: '666666'
+                      });
                     }
 
-                    // Save the presentation
-                    pres.writeFile({ fileName: `${project.title}-pitch.pptx` });
+                    // Save presentation
+                    await pres.writeFile({ fileName: `${project.title}-pitch.pptx` });
                   }}
                 />
+                {aiPitch && (
+                  <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
+                    <h4 className={`font-medium ${themeClasses.text} mb-2`}>Gemini Elevator Pitch</h4>
+                    <p className="text-sm text-gray-500 whitespace-pre-line">{aiPitch}</p>
+                  </div>
+                )}
               </div>
 
               <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border} bg-gradient-to-r from-indigo-50 to-purple-50`}>
