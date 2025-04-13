@@ -435,9 +435,8 @@ export default function ProjectDetails() {
   }, [project]);
 
   useEffect(() => {
+    if (!project) return;
     const fetchConnections = async () => {
-      if (!project?.tags?.length) return;
-
       try {
         const res = await fetch('/api/connections', {
           method: 'POST',
@@ -446,24 +445,22 @@ export default function ProjectDetails() {
             title: project.title,
             tags: project.tags,
             stage: project.stage,
-            industry: project.tags.join(', '), // optional: depends on what Gemini prompt expects
+            industry: project.tags.join(', '),
             description: project.description,
             problem: project.problem,
-            targetAudience: project.targetAudience,
+            targetAudience: project.targetAudience
           })
         });
-
         const data = await res.json();
-        if (Array.isArray(data.connections)) {
+        if (data.connections) {
           setConnections(data.connections);
         }
       } catch (err) {
-        console.error("Error fetching connections:", err);
+        console.error('Error fetching connections:', err);
       }
     };
-
     fetchConnections();
-  }, [project?.tags]);
+  }, [project]);
   
 
   // useEffect(() => {
@@ -652,40 +649,29 @@ export default function ProjectDetails() {
       label: 'Connections',
       icon: Users,
       content: (
-        <div className="space-y-6">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6 rounded-lg text-white">
-            <h3 className="text-xl font-semibold mb-2">Find Your Dream Team</h3>
-            <p className="mb-4">Connect with potential collaborators, startup groups, and investors aligned with your domain.</p>
-          </div>
-
-          {connections.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {connections.map((person, i) => (
-                <div key={i} className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <Users className="h-5 w-5 text-indigo-600" />
+          <div className="max-w-7xl mx-auto p-6">
+            <h2 className="text-xl font-bold mb-4 text-indigo-600">Recommended Connections</h2>
+            {connections.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {connections.map((person, idx) => (
+                  <div key={idx} className={`${themeClasses.card} border ${themeClasses.border} rounded-lg p-4`}>
+                    <h3 className={`font-semibold text-lg ${themeClasses.text}`}>{person.name}</h3>
+                    <p className="text-sm text-gray-500">{person.role}</p>
+                    <p className={`text-sm mt-2 ${themeClasses.subtext}`}>{person.info}</p>
+                    {person.relevance && (
+                      <div className="mt-3 p-2 bg-indigo-50 rounded">
+                        <strong className="text-sm text-indigo-700">Why they're relevant:</strong>
+                        <p className="text-sm text-gray-700">{person.relevance}</p>
                       </div>
-                      <div>
-                        <p className={`font-medium ${themeClasses.text}`}>{person.name}</p>
-                        <p className="text-sm text-gray-500">{person.role}</p>
-                      </div>
-                    </div>
-                    {person.linkedin && (
-                      <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800">
-                        <Link className="h-5 w-5" />
-                      </a>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">No connections found yet. Gemini is scanning LinkedIn profiles that match your project...</p>
-          )}
-        </div>
-      )
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Looking for matches... Please wait while Gemini finds the best connections for you.</p>
+            )}
+          </div>
+        )
     },
     {
       id: 'updates',

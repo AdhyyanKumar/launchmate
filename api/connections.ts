@@ -1,40 +1,55 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { title, tags } = req.body;
-
-  if (!title || !tags || !Array.isArray(tags)) {
-    return res.status(400).json({ error: 'Missing or invalid title/tags' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    console.log('🌐 Request to Gemini Connections API');
-    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const { title, tags, description, problem, targetAudience } = req.body;
 
-    const location = 'College Park, Maryland';
-    const tagText = tags.join(', ');
     const prompt = `
-List 3 real individuals who have created small businesses in ${location} related to: ${tagText}.
-Only return individuals, not companies. For each, provide:
-- Full name
-- Business name
-- A short, engaging bio (2-3 lines)
+You are helping a founder make meaningful startup connections.
 
-Make the format clean for web display and avoid generic filler.
-    `;
+The founder's project is called "${title}" and focuses on the following:
+- Description: ${description}
+- Problem: ${problem}
+- Target Audience: ${targetAudience}
+- Industry Tags: ${tags.join(', ')}
 
+Based on this, list 3 **real or realistic** individuals in or near College Park, Maryland who have started small businesses in a similar or relevant space.
+
+Return only a JSON array in this format:
+[
+  {
+    "name": "Full Name",
+    "role": "Their role or business",
+    "info": "Short bio or summary of what they do",
+    "relevance": "Explain how this person or business is relevant to the project above"
+  }
+]
+
+No extra commentary or formatting. Only valid JSON.
+`;
+
+    const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     const result = await model.generateContent(prompt);
-    const reply = result.response.text();
 
-    console.log('✅ Gemini reply for connections:', reply);
-    res.status(200).json({ connections: reply });
+    const raw = result.response.text();
+    const start = raw.indexOf("[");
+    const end = raw.lastIndexOf("]") + 1;
+    const jsonText = raw.slice(start, end);
+
+    try {
+      const connections = JSON.parse(jsonText);
+      return res.status(200).json({ connections });
+    } catch (err) {
+      console.error("Failed to parse Gemini JSON:", jsonText);
+      return res.status(500).json({ error: "Invalid JSON from Gemini" });
+    }
   } catch (err) {
-    console.error('Gemini API error (connections):', err);
-    res.status(500).json({ error: 'Failed to fetch connections' });
+    console.error("Gemini Connections API error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
