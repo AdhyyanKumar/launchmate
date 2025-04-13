@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
     console.log("Gemini replied with:", text);
-    return res.status(200).json({ response: text });
+    return res.status(200).json({ reply: text });
   } catch (err) {
     console.error("Chatbot error:", err);
     return res.status(500).json({ error: "Chatbot failure" });
