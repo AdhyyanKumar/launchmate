@@ -6,22 +6,8 @@ import pptxgen from 'pptxgenjs';
 import { useAuthStore } from '../store/authStore';
 import { generateElevatorPitch, generateProjectUpdates } from '../hooks/useGemini';
 import {
-  ArrowLeft, Users, Milestone, Bell, MessageSquare, Link, Calendar, Target, ChevronRight,
-  Star,
-  UserPlus,
-  Share2,
-  Download,
-  CheckCircle,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  X,
-  Lightbulb,
-  ClipboardCheck,
-  Rocket,
-  Users2,
-  TrendingUp
+  ArrowLeft, Users, Milestone, Bell, MessageSquare, Link, Calendar, Target, ChevronRight, Star, UserPlus, Share2, Download, CheckCircle, Circle, ChevronDown, ChevronUp,
+  Clock, X, Lightbulb, ClipboardCheck, Rocket, Users2, TrendingUp
 } from 'lucide-react';
 
 interface MilestoneType {
@@ -669,116 +655,6 @@ export default function ProjectDetails() {
                     const themeClasses = getThemeClasses(theme);
                     const pitch = await generateElevatorPitch(project, params);
                     setAiPitch(pitch);
-
-                    const pres = new pptxgen();
-                    const slide1 = pres.addSlide();
-                    slide1.addText(project.title, {
-                      x: 1,
-                      y: 1,
-                      w: '80%',
-                      fontSize: 44,
-                      bold: true,
-                      color: '363636'
-                    });
-                    slide1.addText(`Presented to ${params.audience} at ${params.venue}`, {
-                      x: 1,
-                      y: 2.5,
-                      w: '80%',
-                      fontSize: 20,
-                      color: '666666'
-                    });
-
-                    // Problem Slide
-                    const slide2 = pres.addSlide();
-                    slide2.addText('The Problem', {
-                      x: 1,
-                      y: 0.5,
-                      fontSize: 32,
-                      bold: true,
-                      color: '363636'
-                    });
-                    slide2.addText(project.problem, {
-                      x: 1,
-                      y: 1.5,
-                      w: '80%',
-                      fontSize: 20,
-                      color: '666666'
-                    });
-
-                    // Solution Slide
-                    const slide3 = pres.addSlide();
-                    slide3.addText('Our Solution', {
-                      x: 1,
-                      y: 0.5,
-                      fontSize: 32,
-                      bold: true,
-                      color: '363636'
-                    });
-                    slide3.addText(project.description, {
-                      x: 1,
-                      y: 1.5,
-                      w: '80%',
-                      fontSize: 20,
-                      color: '666666'
-                    });
-
-                    // Gemini Pitch Slide
-                    const slide4 = pres.addSlide();
-                    slide4.addText('Elevator Pitch', {
-                      x: 1,
-                      y: 0.5,
-                      fontSize: 32,
-                      bold: true,
-                      color: '363636'
-                    });
-                    slide4.addText(pitch, {
-                      x: 1,
-                      y: 1.5,
-                      w: '80%',
-                      h: 4,
-                      fontSize: 18,
-                      color: '444444',
-                      wrap: true
-                    });
-
-                    // Target Audience Slide
-                    const slide5 = pres.addSlide();
-                    slide5.addText('Target Market', {
-                      x: 1,
-                      y: 0.5,
-                      fontSize: 32,
-                      bold: true,
-                      color: '363636'
-                    });
-                    slide5.addText(project.targetAudience, {
-                      x: 1,
-                      y: 1.5,
-                      w: '80%',
-                      fontSize: 20,
-                      color: '666666'
-                    });
-
-                    // Optional Traction Slide
-                    if (project.stage !== 'idea') {
-                      const slide6 = pres.addSlide();
-                      slide6.addText('Traction & Milestones', {
-                        x: 1,
-                        y: 0.5,
-                        fontSize: 32,
-                        bold: true,
-                        color: '363636'
-                      });
-                      slide6.addText('We are actively progressing through startup phases with milestones achieved.', {
-                        x: 1,
-                        y: 1.5,
-                        w: '80%',
-                        fontSize: 20,
-                        color: '666666'
-                      });
-                    }
-
-                    // Save presentation
-                    await pres.writeFile({ fileName: `${project.title}-pitch.pptx` });
                   }}
                   themeClasses={themeClasses}
                 />
@@ -788,50 +664,6 @@ export default function ProjectDetails() {
                     <p className="text-sm ${themeClasses.subtext} whitespace-pre-line">{aiPitch}</p>
                   </div>
                 )}
-              </div>
-
-              <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border} bg-gradient-to-r from-indigo-50 to-purple-50`}>
-                <h4 className="text-lg font-medium text-indigo-900 mb-4">Generated Pitch</h4>
-                <p className="text-gray-700 leading-relaxed">
-                  {project.title} is a {project.stage === 'idea' ? 'revolutionary concept' : 'innovative solution'} that {project.description}. 
-                  We're addressing {project.problem} for {project.targetAudience}, 
-                  creating significant value in {project.tags.join(', ')}. 
-                  Our unique approach combines cutting-edge technology with deep market understanding.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
-                  <h4 className={`font-medium ${themeClasses.text} mb-3`}>Key Metrics</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className={themeClasses.subtext}>Market Size</span>
-                      <span className={themeClasses.text}>$1.2B</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={themeClasses.subtext}>Growth Rate</span>
-                      <span className={themeClasses.text}>15% YoY</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={themeClasses.subtext}>Target Users</span>
-                      <span className={themeClasses.text}>1M+</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
-                  <h4 className={`font-medium ${themeClasses.text} mb-3`}>Share Pitch</h4>
-                  <div className="flex items-center gap-4">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600">
-                      <Share2 className="h-4 w-4" />
-                      Share
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-                      <Download className="h-4 w-4" />
-                      Download
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
