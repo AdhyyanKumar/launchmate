@@ -11,13 +11,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No message provided' });
     }
 
-    const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=' + process.env.VITE_GEMINI_API_KEY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: message }] }]
-      })
-    });
+    console.log("Sending to Gemini:", JSON.stringify({
+      contents: [{ parts: [{ text: message }] }]
+    }));
+    
+
+    const geminiRes = await fetch(
+      'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=' + process.env.VITE_GEMINI_API_KEY,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: message }]
+            }
+          ]
+        })
+      }
+    );
+    
+    console.log("API KEY:", process.env.VITE_GEMINI_API_KEY);
+    console.log("Incoming request body:", req.body);
 
     if (!message?.trim()) {
       return res.status(400).json({ error: 'Empty message provided' });
@@ -26,6 +41,8 @@ export default async function handler(req, res) {
     const data = await geminiRes.json();
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't understand that.";
     res.status(200).json({ reply });
+    console.log("Gemini response raw:", data);
+
 
   } catch (err) {
     console.error('Chat API error:', err);
