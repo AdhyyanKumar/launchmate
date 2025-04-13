@@ -861,7 +861,8 @@ export default function ProjectDetails() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
                                 id: project.id,
-                                collaborators: updated
+                                collaborators: updated,
+                                visibility: updated.length === 0 ? 'private' : project.visibility
                               })
                             });
                             await fetchProjects();
@@ -888,8 +889,7 @@ export default function ProjectDetails() {
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         id: project.id,
-                        collaborators: updated,
-                        visibility: updated.length === 0 ? 'private' : project.visibility
+                        collaborators: updated
                       })
                     });
                     await fetchProjects();
