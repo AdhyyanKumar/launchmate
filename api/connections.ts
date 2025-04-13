@@ -17,7 +17,7 @@ The founder's project is called "${title}" and focuses on the following:
 - Target Audience: ${targetAudience}
 - Industry Tags: ${tags.join(', ')}
 
-Based on this, list 3 **real or realistic** individuals in or near College Park, Maryland who have started small businesses in a similar or relevant space.
+Based on this, list 3 to 5 **real or realistic** individuals in USA who have started small businesses in a similar or relevant space.
 
 Return only a JSON array in this format:
 [
