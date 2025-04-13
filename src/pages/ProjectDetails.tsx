@@ -688,34 +688,42 @@ export default function ProjectDetails() {
               Gemini AI: Latest Industry Updates
             </h3>
     
-            {aiUpdates.length > 0 ? (
-              aiUpdates
+            {Array.isArray(project.aiUpdates) && project.aiUpdates.length > 0 ? (
+              project.aiUpdates
+                .filter(update => !update.content.includes('Failed to fetch updates'))
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .map((update, index) => (
-                  <div key={index} className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <Bell className="h-5 w-5 text-indigo-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className={`font-medium ${themeClasses.text}`}>AI Insight</h4>
-                        <p className="text-sm text-gray-400 mb-1">
-                          {new Date(update.createdAt).toLocaleString()}
-                        </p>
-                        <p className={`text-sm ${themeClasses.subtext} whitespace-pre-line`}>
-                          {update.content}
-                        </p>
+                .flatMap((update, index) => {
+                  const parts = update.content
+                    .split(/\*\*Update \d+:/) // splits on "**Update 1:", etc
+                    .map(p => p.trim())
+                    .filter(Boolean);
+    
+                  return parts.map((part, i) => (
+                    <div key={`${index}-${i}`} className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                          <Bell className="h-5 w-5 text-indigo-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className={`font-medium ${themeClasses.text}`}>AI Insight</h4>
+                          <p className="text-sm text-gray-400 mb-1">
+                            {new Date(update.createdAt).toLocaleString()}
+                          </p>
+                          <p className={`text-sm ${themeClasses.subtext} whitespace-pre-line`}>
+                            {part}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ));
+                })
             ) : (
               <div className="text-sm text-gray-400">No updates yet. Hang tight, insights are on the way!</div>
             )}
           </div>
         </div>
       )
-    },    
+    },       
     {
       id: 'pitch',
       label: 'Elevator Pitch',
