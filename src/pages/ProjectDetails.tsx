@@ -627,7 +627,7 @@ export default function ProjectDetails() {
                 <h5 className={`text-lg font-semibold ${themeClasses.text}`}>{phase.phaseTitle}</h5>
                 <p className="text-sm text-gray-500 mb-2">{phase.phaseDescription}</p>
 
-                {phase.milestones.map((milestone) => (
+                {phase.milestones.map((milestone, index) => (
                   <div
                     key={milestone.title}
                     className={`flex items-center justify-between p-4 rounded-lg border ${themeClasses.border} ${themeClasses.card}`}
@@ -636,7 +636,7 @@ export default function ProjectDetails() {
                       <h4 className={`font-medium text-base ${themeClasses.text}`}>{milestone.title}</h4>
                       <p className="text-sm text-gray-500">{milestone.description}</p>
                     </div>
-                    <div className="text-sm text-gray-400 font-medium">1 month left</div>
+                    <div className="text-sm text-gray-400 font-medium">{index + 1} month{index + 1 > 1 ? 's' : ''} left</div>
                   </div>
                 ))}
               </div>
