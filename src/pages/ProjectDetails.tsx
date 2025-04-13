@@ -651,14 +651,14 @@ export default function ProjectDetails() {
       label: 'Elevator Pitch',
       icon: MessageSquare,
       content: (
-        <div className="space-y-6">
+        <div className="space-y-6 ${themeClasses.background}">
           <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
             <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Pitch Generator</h3>
             
             <div className="space-y-6">
               {/* Pitch Parameters Form */}
               <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-                <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                <h4 className="text-lg font-medium ${themeClasses.text} mb-4">
                   Customize Your Pitch
                 </h4>
                 <PitchParametersForm
@@ -781,7 +781,7 @@ export default function ProjectDetails() {
                 {aiPitch && (
                   <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
                     <h4 className={`font-medium ${themeClasses.text} mb-2`}>Gemini Elevator Pitch</h4>
-                    <p className="text-sm text-gray-500 whitespace-pre-line">{aiPitch}</p>
+                    <p className="text-sm ${themeClasses.subtext} whitespace-pre-line">{aiPitch}</p>
                   </div>
                 )}
               </div>
@@ -801,15 +801,15 @@ export default function ProjectDetails() {
                   <h4 className={`font-medium ${themeClasses.text} mb-3`}>Key Metrics</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Market Size</span>
+                      <span className={themeClasses.subtext}>Market Size</span>
                       <span className={themeClasses.text}>$1.2B</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Growth Rate</span>
+                      <span className={themeClasses.subtext}>Growth Rate</span>
                       <span className={themeClasses.text}>15% YoY</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Target Users</span>
+                      <span className={themeClasses.subtext}>Target Users</span>
                       <span className={themeClasses.text}>1M+</span>
                     </div>
                   </div>
