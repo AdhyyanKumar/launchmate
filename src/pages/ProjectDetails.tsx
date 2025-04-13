@@ -154,9 +154,11 @@ const phases = [
 ];
 
 const PitchParametersForm = ({
-  onSubmit
+  onSubmit,
+  themeClasses
 }: {
   onSubmit: (params: PitchParameters) => void;
+  themeClasses: any;
 }) => {
   const [params, setParams] = useState<PitchParameters>({
     audience: '',
@@ -173,7 +175,7 @@ const PitchParametersForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className={`block text-sm font-medium ${themeClasses.text} mb-1`}>
           Who are you presenting to?
         </label>
         <input
@@ -186,7 +188,7 @@ const PitchParametersForm = ({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className={`block text-sm font-medium ${themeClasses.text} mb-1`}>
           Where are you presenting?
         </label>
         <input
@@ -199,7 +201,7 @@ const PitchParametersForm = ({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className={`block text-sm font-medium ${themeClasses.text} mb-1`}>
           What is the goal of your pitch?
         </label>
         <input
@@ -212,7 +214,7 @@ const PitchParametersForm = ({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className={`block text-sm font-medium ${themeClasses.text} mb-1`}>
           How much time do you have?
         </label>
         <select
@@ -663,11 +665,12 @@ export default function ProjectDetails() {
                 </h4>
                 <PitchParametersForm
                   onSubmit={async (params) => {
+                    const { theme } = useThemeStore();
+                    const themeClasses = getThemeClasses(theme);
                     const pitch = await generateElevatorPitch(project, params);
                     setAiPitch(pitch);
 
                     const pres = new pptxgen();
-                    // Title Slide
                     const slide1 = pres.addSlide();
                     slide1.addText(project.title, {
                       x: 1,
@@ -777,6 +780,7 @@ export default function ProjectDetails() {
                     // Save presentation
                     await pres.writeFile({ fileName: `${project.title}-pitch.pptx` });
                   }}
+                  themeClasses={themeClasses}
                 />
                 {aiPitch && (
                   <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
