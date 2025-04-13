@@ -23,8 +23,8 @@ interface ProjectState {
   loading: boolean;
   loadProjects: () => Promise<void>;
   addProject: (project: Omit<Project, 'id'>) => Promise<Project | null>;
-  updateProject: (id: string, project: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
+  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => void;
   toggleVisibility: (id: string) => void;
 }
@@ -35,16 +35,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   loadProjects: async () => {
     const { user } = useAuthStore.getState();
-  
-    console.log('Loading projects for user:', user); // ✅ log inside the store
-  
+
+    console.log('Loading projects for user:', user);
+
     if (!user?.email || typeof user.email !== 'string') {
       console.warn('Missing or invalid user email in loadProjects');
       return;
     }
-  
+
     set({ loading: true });
-  
+
     try {
       const res = await fetch(`/api/projects?email=${user.email}`);
       if (!res.ok) {
@@ -52,15 +52,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         console.error("Failed to load projects:", text);
         return;
       }
-  
+
       const data = await res.json();
       const mapped = data.map((p: any) => ({
         ...p,
         id: p._id,
-        visibility: p.visibility || 'private',   // ✅ fallback
-        favorite: p.favorite || false,           // ✅ fallback
-        collaborators: p.collaborators || [],    // ✅ fallback
-      }));      
+        visibility: p.visibility || 'private',
+        favorite: p.favorite || false,
+        collaborators: p.collaborators || [],
+      }));
       set({ projects: mapped });
     } catch (error) {
       console.error('Error loading projects:', error);
@@ -108,19 +108,51 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  updateProject: (id, projectData) =>
-    set((state) => ({
-      projects: state.projects.map((project) =>
-        project.id === id
-          ? { ...project, ...projectData, lastEdited: new Date().toISOString() }
-          : project
-      ),
-    })),
+  updateProject: async (id, projectData) => {
+    try {
+      const res = await fetch('/api/projects.mjs', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...projectData }),
+      });
 
-  deleteProject: (id) =>
-    set((state) => ({
-      projects: state.projects.filter((project) => project.id !== id),
-    })),
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Failed to update project:', text);
+        return;
+      }
+
+      set((state) => ({
+        projects: state.projects.map((project) =>
+          project.id === id
+            ? { ...project, ...projectData, lastEdited: new Date().toISOString() }
+            : project
+        ),
+      }));
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
+  },
+
+  deleteProject: async (id) => {
+    try {
+      const res = await fetch(`/api/projects.mjs?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Failed to delete project:', text);
+        return;
+      }
+
+      set((state) => ({
+        projects: state.projects.filter((project) => project.id !== id),
+      }));
+    } catch (err) {
+      console.error('Error deleting project:', err);
+    }
+  },
 
   toggleFavorite: (id) =>
     set((state) => ({
