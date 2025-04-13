@@ -158,6 +158,9 @@ const PitchParametersForm = ({
     onSubmit(params);
   };
 
+  const inputClass =
+    'w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -168,7 +171,7 @@ const PitchParametersForm = ({
           type="text"
           value={params.audience}
           onChange={(e) => setParams({ ...params, audience: e.target.value })}
-          className="w-full px-3 py-2 border rounded-md"
+          className={inputClass}
           placeholder="e.g., Angel investors, Venture capitalists, Potential customers"
           required
         />
@@ -181,7 +184,7 @@ const PitchParametersForm = ({
           type="text"
           value={params.venue}
           onChange={(e) => setParams({ ...params, venue: e.target.value })}
-          className="w-full px-3 py-2 border rounded-md"
+          className={inputClass}
           placeholder="e.g., Startup conference, Online meeting, Investor office"
           required
         />
@@ -194,7 +197,7 @@ const PitchParametersForm = ({
           type="text"
           value={params.goal}
           onChange={(e) => setParams({ ...params, goal: e.target.value })}
-          className="w-full px-3 py-2 border rounded-md"
+          className={inputClass}
           placeholder="e.g., Secure seed funding, Partnership opportunity, Customer acquisition"
           required
         />
@@ -206,7 +209,7 @@ const PitchParametersForm = ({
         <select
           value={params.duration}
           onChange={(e) => setParams({ ...params, duration: e.target.value })}
-          className="w-full px-3 py-2 border rounded-md"
+          className={inputClass}
           required
         >
           <option value="">Select duration</option>
@@ -226,6 +229,7 @@ const PitchParametersForm = ({
     </form>
   );
 };
+
 
 function MilestoneSummaryModal({ 
   isOpen, 
