@@ -891,7 +891,7 @@ export default function ProjectDetails() {
                   name="email"
                   placeholder="Add collaborator email"
                   required
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={`flex-1 px-4 py-2 rounded-lg ${themeClasses.input} ${themeClasses.focusRing}`}
                 />
                 <button
                   type="submit"
