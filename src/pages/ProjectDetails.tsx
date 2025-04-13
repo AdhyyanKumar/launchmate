@@ -357,6 +357,7 @@ export default function ProjectDetails() {
   const [activeTab, setActiveTab] = useState('milestones');
   const [expandedMilestones, setExpandedMilestones] = useState<{ [projectId: string]: string | null }>({});
   const [showMilestoneSummary, setShowMilestoneSummary] = useState(false);
+  const fetchProjects = useProjectStore(state => state.loadProjects);
 
   const project = projects.find(p => p.id === id);
 
@@ -782,6 +783,67 @@ export default function ProjectDetails() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'collaborators',
+      label: 'Collaborators',
+      icon: Users,
+      content: (
+        <div className="space-y-6">
+          <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
+            <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Manage Collaborators</h3>
+    
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const formData = new FormData(form);
+                const email = formData.get('email')?.toString().trim();
+                if (!email) return;
+    
+                await fetch('/api/projects.mjs', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    id: project.id,
+                    visibility: 'public',
+                    collaborators: [...(project.collaborators || []), email]
+                  })
+                });
+    
+                await fetchProjects();
+                form.reset();
+              }}
+              className="flex gap-4 items-center"
+            >
+              <input
+                type="email"
+                name="email"
+                placeholder="Add collaborator email"
+                required
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Add Collaborator
+              </button>
+            </form>
+    
+            {project.collaborators?.length > 0 && (
+              <div className="mt-6">
+                <h4 className={`font-medium ${themeClasses.text} mb-2`}>Current Collaborators</h4>
+                <ul className="list-disc list-inside text-sm text-gray-500">
+                  {project.collaborators.map((email, idx) => (
+                    <li key={idx}>{email}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )

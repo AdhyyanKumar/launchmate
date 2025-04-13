@@ -169,33 +169,18 @@ function Dashboard() {
         break;
       }
       case 'togglePrivacy': {
-        if (project.visibility === 'private') {
-          const email = prompt('Enter an email to share this project with:');
-          if (!email) return;
-
-          await fetch('/api/projects.mjs', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: projectId,
-              visibility: 'public',
-              collaborators: [...(project.collaborators || []), email]
-            })
-          });
-        } else {
-          await fetch('/api/projects.mjs', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: projectId,
-              visibility: 'private'
-            })
-          });
-        }
-
+        await fetch('/api/projects.mjs', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: projectId,
+            visibility: project.visibility === 'private' ? 'public' : 'private'
+          })
+        });
+      
         await loadProjects();
         break;
-      }
+      }      
     }
   };
 
