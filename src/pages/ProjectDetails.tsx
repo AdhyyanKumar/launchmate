@@ -660,7 +660,7 @@ export default function ProjectDetails() {
                     <p className={`text-sm mt-2 ${themeClasses.subtext}`}>{person.info}</p>
                     {person.relevance && (
                       <div className="mt-3 p-2 bg-indigo-50 rounded">
-                        <strong className="text-sm text-indigo-700">Why they're relevant:</strong>
+                        <strong className={`text-sm ${themeClasses.accent}`}>Why they're relevant:</strong>
                         <p className="text-sm text-gray-700">{person.relevance}</p>
                       </div>
                     )}
