@@ -140,6 +140,13 @@ const phases = [
   }
 ];
 
+const allMilestones = phases.map((phase) => ({
+  phaseId: phase.id,
+  phaseTitle: phase.title,
+  phaseDescription: phase.description,
+  milestones: milestones[phase.id] || [],
+}));
+
 const PitchParametersForm = ({
   onSubmit,
   themeClasses,
@@ -612,125 +619,29 @@ export default function ProjectDetails() {
       label: 'Milestone Tracker',
       icon: Milestone,
       content: (
-        <div className="space-y-6">
-          {/* Phase Progress */}
-          <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl font-semibold ${themeClasses.text}`}>Startup Journey</h3>
-              <button
-                onClick={() => setShowMilestoneSummary(true)}
-                className={`flex items-center gap-2 ${themeClasses.text} hover:text-indigo-600 transition-colors`}
-              >
-                <Target className="h-5 w-5 text-indigo-500" />
-                <span>View Journey Progress</span>
-              </button>
-            </div>
+        <div className="space-y-4">
+          <h4 className={`font-medium ${themeClasses.text}`}>All Phases and Milestones</h4>
+          {allMilestones.map((phase) => {
+            return (
+              <div key={phase.phaseId} className="space-y-4 mb-8">
+                <h5 className={`text-lg font-semibold ${themeClasses.text}`}>{phase.phaseTitle}</h5>
+                <p className="text-sm text-gray-500 mb-2">{phase.phaseDescription}</p>
 
-            {/* Phase Timeline */}
-            <div className="relative mb-8">
-              <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2" />
-              <div className="relative flex justify-between">
-                {phases.map((phase, index) => {
-                  const PhaseIcon = phase.icon;
-                  const isCompleted = index < currentPhaseIndex;
-                  const isCurrent = index === currentPhaseIndex;
-                  
-                  return (
-                    <div key={phase.id} className="flex flex-col items-center">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center relative z-10 ${
-                          isCompleted
-                            ? 'bg-green-100'
-                            : isCurrent
-                            ? 'bg-indigo-100'
-                            : 'bg-gray-100'
-                        }`}
-                      >
-                        <PhaseIcon
-                          className={`h-5 w-5 ${
-                            isCompleted
-                              ? 'text-green-600'
-                              : isCurrent
-                              ? 'text-indigo-600'
-                              : 'text-gray-400'
-                          }`}
-                        />
-                      </div>
-                      <div className="mt-2 text-center">
-                        <div className={`text-sm font-medium ${
-                          isCurrent ? 'text-indigo-600' : themeClasses.text
-                        }`}>
-                          {phase.title}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1 max-w-[120px]">
-                          {phase.description}
-                        </div>
-                      </div>
+                {phase.milestones.map((milestone) => (
+                  <div
+                    key={milestone.title}
+                    className={`flex items-center justify-between p-4 rounded-lg border ${themeClasses.border} ${themeClasses.card}`}
+                  >
+                    <div>
+                      <h4 className={`font-medium text-base ${themeClasses.text}`}>{milestone.title}</h4>
+                      <p className="text-sm text-gray-500">{milestone.description}</p>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Current Phase Milestones */}
-            <div className="space-y-4">
-              <h4 className={`font-medium ${themeClasses.text}`}>Current Phase Tasks</h4>
-              {projectMilestones.map((milestone, index) => (
-                <div
-                  key={milestone.title}
-                  className={`${themeClasses.card} border ${themeClasses.border} rounded-lg overflow-hidden`}
-                >
-                  <div className="p-4">
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="flex-1">
-                        <h4 className={`font-medium ${themeClasses.text}`}>{milestone.title}</h4>
-                        <p className="text-sm text-gray-500">{milestone.description}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-sm text-gray-500">
-                          Due: {new Date(milestone.dueDate).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {milestone.tasks.filter(t => t.completed).length} / {milestone.tasks.length} completed
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                      <div 
-                        className="bg-indigo-600 h-2.5 rounded-full" 
-                        style={{ 
-                          width: `${(milestone.tasks.filter(t => t.completed).length / milestone.tasks.length) * 100}%` 
-                        }}
-                      ></div>
-                    </div>
-                    <div className="space-y-2">
-                      {milestone.tasks.map((task, taskIndex) => (
-                        <div
-                          key={taskIndex}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleTaskToggle(project.id, currentPhase, milestone.title, taskIndex)}
-                            className="flex items-center gap-3 w-full text-left group"
-                          >
-                            {task.completed ? (
-                              <CheckCircle className="h-5 w-5 text-green-500 group-hover:text-green-600" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-gray-400 group-hover:text-gray-500" />
-                            )}
-                            <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : themeClasses.text} group-hover:text-indigo-600`}>
-                              {task.title}
-                            </span>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                    <div className="text-sm text-gray-400 font-medium">1 month left</div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )
     },
