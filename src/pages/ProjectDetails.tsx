@@ -108,35 +108,40 @@ const phases = [
     title: 'Idea Stage',
     description: 'Flesh out idea, create space for R&D',
     icon: Lightbulb,
-    color: 'text-yellow-500'
+    color: 'text-yellow-500',
+    monthsLeft: 1
   },
   {
     id: 'validation',
     title: 'Validation Stage',
     description: 'Test idea with individuals',
     icon: ClipboardCheck,
-    color: 'text-green-500'
+    color: 'text-green-500',
+    monthsLeft: 2
   },
   {
     id: 'mvp',
     title: 'MVP Stage',
     description: 'Define value proposition and development plan',
     icon: Rocket,
-    color: 'text-blue-500'
+    color: 'text-blue-500',
+    monthsLeft: 3
   },
   {
     id: 'early_users',
     title: 'Early Users',
     description: 'Launch and gather feedback',
     icon: Users2,
-    color: 'text-purple-500'
+    color: 'text-purple-500',
+    monthsLeft: 4
   },
   {
     id: 'scaling',
     title: 'Scaling & Fundraising',
     description: 'Grow and secure investment',
     icon: TrendingUp,
-    color: 'text-indigo-500'
+    color: 'text-indigo-500',
+    monthsLeft: 5
   }
 ];
 
@@ -627,7 +632,7 @@ export default function ProjectDetails() {
                 <h5 className={`text-lg font-semibold ${themeClasses.text}`}>{phase.phaseTitle}</h5>
                 <p className="text-sm text-gray-500 mb-2">{phase.phaseDescription}</p>
 
-                {phase.milestones.map((milestone, index) => (
+                {phase.milestones.map((milestone) => (
                   <div
                     key={milestone.title}
                     className={`flex items-center justify-between p-4 rounded-lg border ${themeClasses.border} ${themeClasses.card}`}
@@ -636,7 +641,10 @@ export default function ProjectDetails() {
                       <h4 className={`font-medium text-base ${themeClasses.text}`}>{milestone.title}</h4>
                       <p className="text-sm text-gray-500">{milestone.description}</p>
                     </div>
-                    <div className="text-sm text-gray-400 font-medium">{index + 1} month{index + 1 > 1 ? 's' : ''} left</div>
+                    <div className="text-sm text-gray-400 font-medium">
+                      {phases.find(p => p.id === phase.phaseId)?.monthsLeft} month
+                      {phases.find(p => p.id === phase.phaseId)?.monthsLeft !== 1 ? 's' : ''} left
+                    </div>
                   </div>
                 ))}
               </div>
