@@ -385,19 +385,32 @@ export default function ProjectDetails() {
   useEffect(() => {
     const runGemini = async () => {
       if (!project) return;
-  
-      const pitch = await generateElevatorPitch(project, {
-        audience: "investors",
-        venue: "demo day",
-        goal: "funding",
-        duration: "1"
+
+      const pitch = await generateElevatorPitch(
+        {
+          title: project.title,
+          description: project.description,
+          problem: project.problem,
+          targetAudience: project.targetAudience,
+          tags: project.tags
+        },
+        {
+          audience: 'investors',
+          venue: 'demo day',
+          goal: 'funding',
+          duration: '1'
+        }
+      );
+
+      const updates = await generateProjectUpdates({
+        title: project.title,
+        tags: project.tags
       });
-      const updates = await generateProjectUpdates(project);
-  
+
       setAiPitch(pitch);
       setAiUpdates(updates);
     };
-  
+
     runGemini();
   }, [project]);
 
