@@ -44,6 +44,7 @@ function Dashboard() {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [sortBy, setSortBy] = useState<ProjectSort>('lastEdited');
   const [searchTerm, setSearchTerm] = useState('');
+  const [emailInput, setEmailInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
     document.body.className = theme;
@@ -293,25 +294,65 @@ function Dashboard() {
                         <Pencil className="h-4 w-4" />
                         Rename
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleProjectAction(project.id, 'togglePrivacy');
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 text-sm ${getThemeClasses().text} ${getThemeClasses().hover} w-full`}
-                      >
-                        {project.visibility === 'private' ? (
-                          <>
-                            <Globe className="h-4 w-4" />
-                            Make Public
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="h-4 w-4" />
-                            Make Private
-                          </>
-                        )}
-                      </button>
+                      {project.visibility === 'private' ? (
+                        <div className="px-4 py-2 space-y-2">
+                          <label className="text-sm text-gray-500">Share with:</label>
+                          <input
+                            type="email"
+                            placeholder="example@email.com"
+                            value={emailInput[project.id] || ''}
+                            onChange={(e) =>
+                              setEmailInput((prev) => ({ ...prev, [project.id]: e.target.value }))
+                            }
+                            className="w-full px-3 py-1 rounded-md text-sm border border-gray-300"
+                          />
+                          <button
+                            className="w-full px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const email = emailInput[project.id]?.trim();
+                              if (!email) return alert('Enter a valid email');
+
+                              await fetch('/api/projects.mjs', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  id: project.id,
+                                  visibility: 'public',
+                                  collaborators: [...(project.collaborators || []), email],
+                                }),
+                              });
+
+                              setEmailInput((prev) => ({ ...prev, [project.id]: '' }));
+                              loadProjects();
+                              setShowProjectMenu(null);
+                            }}
+                          >
+                            Share & Make Public
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            await fetch('/api/projects.mjs', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                id: project.id,
+                                visibility: 'private',
+                              }),
+                            });
+                            await loadProjects();
+                            setShowProjectMenu(null);
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full`}
+                        >
+                          <Lock className="h-4 w-4" />
+                          Make Private
+                        </button>
+                      )}
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
