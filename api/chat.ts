@@ -1,5 +1,4 @@
-// /api/chat.ts
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { type VercelRequest, type VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -7,42 +6,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // manually parse JSON body from buffer
+  const body = await new Promise<string>((resolve, reject) => {
+    let raw = '';
+    req.on('data', chunk => raw += chunk);
+    req.on('end', () => resolve(raw));
+    req.on('error', reject);
+  });
+
+  let parsed;
   try {
-    const buffers = await new Promise<Buffer>((resolve, reject) => {
-        const chunks: any[] = [];
-        req.on('data', (chunk) => chunks.push(chunk));
-        req.on('end', () => resolve(Buffer.concat(chunks)));
-        req.on('error', reject);
-      });
-      const body = JSON.parse(buffers.toString());
-      const message = body.message;      
-    const apiKey = process.env.VITE_GEMINI_API_KEY;
+    parsed = JSON.parse(body);
+  } catch (err) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
 
-    console.log("🌐 Request Received");
-    console.log("👉 API KEY EXISTS:", !!apiKey);
-    console.log("👉 Incoming message:", message);
+  const message = parsed.message;
+  console.log('👉 Incoming message:', message);
+  if (!message?.trim()) {
+    return res.status(400).json({ error: 'Empty message' });
+  }
 
-    if (!apiKey) {
-      return res.status(500).json({ error: "Missing Gemini API key" });
-    }
+  const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY!);
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ error: "Message is missing or not a string" });
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
+  try {
     const result = await model.generateContent(message);
     const reply = result.response.text();
-
-    console.log("✅ Gemini raw response:", result.response);
-    console.log("✅ Extracted reply:", reply);
-
     return res.status(200).json({ reply });
-  } catch (err: any) {
-    console.error("💥 ERROR in /api/chat:", err?.message || err);
-    console.error("💥 STACK TRACE:", err?.stack);
-    return res.status(500).json({ error: "Internal server error", message: err?.message });
+  } catch (error) {
+    console.error('❌ Gemini error:', error);
+    return res.status(500).json({ error: 'Gemini failed' });
   }
 }
