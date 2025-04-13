@@ -16,6 +16,17 @@ export interface Project {
   targetAudience: string;
   ownerEmail: string;
   aiUpdates?: { content: string; createdAt: string }[];
+  milestones?: {
+    [phaseId: string]: {
+      title: string;
+      dueDate: string;
+      completed?: boolean;
+      tasks: {
+        title: string;
+        completed: boolean;
+      }[];
+    }[];
+  };  
 }
 
 interface ProjectState {
@@ -27,6 +38,12 @@ interface ProjectState {
   deleteProject: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => void;
   toggleVisibility: (id: string) => void;
+  toggleMilestoneTask: (
+    projectId: string,
+    phaseId: string,
+    milestoneTitle: string,
+    taskIndex: number
+  ) => void;
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -175,4 +192,48 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           : project
       ),
     })),
+
+    toggleMilestoneTask: (
+      projectId: string,
+      phaseId: string,
+      milestoneTitle: string,
+      taskIndex: number
+    ) => {
+      set((state) => {
+        const updatedProjects = state.projects.map((project) => {
+          if (project.id !== projectId) return project;
+  
+          // Clone project
+          const updatedProject = { ...project };
+          const phaseMilestones = updatedProject.milestones?.[phaseId] || [];
+  
+          const updatedMilestones = phaseMilestones.map((milestone) => {
+            if (milestone.title !== milestoneTitle) return milestone;
+  
+            const updatedTasks = milestone.tasks.map((task, index) =>
+              index === taskIndex
+                ? { ...task, completed: !task.completed }
+                : task
+            );
+  
+            const updatedMilestone = {
+              ...milestone,
+              tasks: updatedTasks,
+              completed: updatedTasks.every((t) => t.completed),
+            };
+  
+            return updatedMilestone;
+          });
+  
+          // Save updated milestones to phase
+          updatedProject.milestones = {
+            ...updatedProject.milestones,
+            [phaseId]: updatedMilestones,
+          };
+  
+          return updatedProject;
+        });
+  
+        return { projects: updatedProjects };
+      })},
 }));

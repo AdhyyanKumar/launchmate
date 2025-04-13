@@ -462,6 +462,21 @@ export default function ProjectDetails() {
     fetchConnections();
   }, [project]);
   
+  const handleTaskToggle = (
+    projectId: string,
+    phaseId: string,
+    milestoneTitle: string,
+    taskIndex: number
+  ) => {
+    // Dispatch to the store to toggle the task
+    useProjectStore.getState().toggleMilestoneTask(
+      projectId,
+      phaseId,
+      milestoneTitle,
+      taskIndex
+    );
+  };
+  
 
   // useEffect(() => {
   //   const runGemini = async () => {
@@ -619,19 +634,21 @@ export default function ProjectDetails() {
                         
                         <div className="space-y-2">
                           {milestone.tasks.map((task, taskIndex) => (
-                            <div
-                              key={taskIndex}
-                              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                            >
-                              {task.completed ? (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                              ) : (
-                                <Circle className="h-5 w-5 text-gray-400" />
-                              )}
-                              <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : themeClasses.text}`}>
-                                {task.title}
-                              </span>
-                            </div>
+                            <button
+                            type="button"
+                            onClick={() => handleTaskToggle(project.id, currentPhase, milestone.title, taskIndex)}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left"
+                          >
+                            {task.completed ? (
+                              <CheckCircle className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-gray-400" />
+                            )}
+                            <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : themeClasses.text}`}>
+                              {task.title}
+                            </span>
+                          </button>
+                          
                           ))}
                         </div>
                       </div>
