@@ -39,8 +39,6 @@ export default function AIChatbot() {
     setInput('');
   
     try {
-      console.log("👤 Sending message to API:", input);
-
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {

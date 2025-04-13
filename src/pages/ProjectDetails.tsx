@@ -9,6 +9,7 @@ import {
   ArrowLeft, Users, Milestone, Bell, MessageSquare, Link, Calendar, Target, ChevronRight, Star, UserPlus, Share2, Download, CheckCircle, Circle, ChevronDown, ChevronUp,
   Clock, X, Lightbulb, ClipboardCheck, Rocket, Users2, TrendingUp
 } from 'lucide-react';
+import ConnectionsTab from '../components/ConnectionsTab';
 
 interface MilestoneType {
   title: string;
@@ -369,6 +370,7 @@ export default function ProjectDetails() {
     );
   }  
   const isOwner = project.ownerEmail === user?.email;
+  const [connections, setConnections] = useState<any[]>([]);
 
   useEffect(() => {
     const ensureMinimumAIUpdates = async () => {
@@ -431,6 +433,29 @@ export default function ProjectDetails() {
   
     fetchUpdates();
   }, [project]);
+
+  useEffect(() => {
+    const fetchConnections = async () => {
+      if (!project?.tags?.length) return;
+
+      try {
+        const res = await fetch(`/api/connections.ts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tags: project.tags })
+        });
+
+        const data = await res.json();
+        if (Array.isArray(data.connections)) {
+          setConnections(data.connections);
+        }
+      } catch (err) {
+        console.error("Error fetching connections:", err);
+      }
+    };
+
+    fetchConnections();
+  }, [project?.tags]);
   
 
   // useEffect(() => {
@@ -623,57 +648,34 @@ export default function ProjectDetails() {
           <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6 rounded-lg text-white">
             <h3 className="text-xl font-semibold mb-2">Find Your Dream Team</h3>
             <p className="mb-4">Connect with potential collaborators, startup groups, and investors aligned with your domain.</p>
-            <button className="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Find Collaborators
-            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-              <h4 className={`text-lg font-semibold ${themeClasses.text} mb-4`}>Recommended Connections</h4>
-              <div className="space-y-4">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between">
+          {connections.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {connections.map((person, i) => (
+                <div key={i} className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
                         <Users className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div>
-                        <p className={`font-medium ${themeClasses.text}`}>John Doe</p>
-                        <p className="text-sm text-gray-500">Full Stack Developer</p>
+                        <p className={`font-medium ${themeClasses.text}`}>{person.name}</p>
+                        <p className="text-sm text-gray-500">{person.role}</p>
                       </div>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-800">
-                      <UserPlus className="h-5 w-5" />
-                    </button>
+                    {person.linkedin && (
+                      <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800">
+                        <Link className="h-5 w-5" />
+                      </a>
+                    )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-
-            <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
-              <h4 className={`text-lg font-semibold ${themeClasses.text} mb-4`}>Potential Investors</h4>
-              <div className="space-y-4">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Star className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className={`font-medium ${themeClasses.text}`}>Startup Capital</p>
-                        <p className="text-sm text-gray-500">Early Stage VC</p>
-                      </div>
-                    </div>
-                    <button className="text-green-600 hover:text-green-800">
-                      <Link className="h-5 w-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-gray-500">No connections found yet. Gemini is scanning LinkedIn profiles that match your project...</p>
+          )}
         </div>
       )
     },

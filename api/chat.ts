@@ -22,7 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const message = parsed.message;
-  console.log('👉 Incoming message:', message);
   if (!message?.trim()) {
     return res.status(400).json({ error: 'Empty message' });
   }
