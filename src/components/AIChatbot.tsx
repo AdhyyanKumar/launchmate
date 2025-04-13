@@ -45,7 +45,13 @@ export default function AIChatbot() {
         body: JSON.stringify({ prompt: input }),
       });
   
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { reply: 'Something went wrong on the server.' };
+      }
+
   
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
