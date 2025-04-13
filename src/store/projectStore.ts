@@ -14,6 +14,7 @@ export interface Project {
   tags: string[];
   problem: string;
   targetAudience: string;
+  ownerEmail: string;
 }
 
 interface ProjectState {

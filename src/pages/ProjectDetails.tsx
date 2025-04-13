@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../store/projectStore';
 import { useThemeStore, getThemeClasses } from '../store/themeStore';
 import pptxgen from 'pptxgenjs';
+import { useAuthStore } from '../store/authStore';
 import {
   ArrowLeft, Users, Milestone, Bell, MessageSquare, Link, Calendar, Target, ChevronRight,
   Star,
@@ -358,8 +359,16 @@ export default function ProjectDetails() {
   const [expandedMilestones, setExpandedMilestones] = useState<{ [projectId: string]: string | null }>({});
   const [showMilestoneSummary, setShowMilestoneSummary] = useState(false);
   const fetchProjects = useProjectStore(state => state.loadProjects);
-
+  const { user } = useAuthStore();
   const project = projects.find(p => p.id === id);
+  if (!project) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">Loading project...</p>
+      </div>
+    );
+  }  
+  const isOwner = project.ownerEmail === user?.email;
 
   if (!project) {
     return (
@@ -796,58 +805,105 @@ export default function ProjectDetails() {
           <div className={`${themeClasses.card} p-6 rounded-lg border ${themeClasses.border}`}>
             <h3 className={`text-xl font-semibold ${themeClasses.text} mb-4`}>Manage Collaborators</h3>
     
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const form = e.currentTarget;
-                const formData = new FormData(form);
-                const email = formData.get('email')?.toString().trim();
-                if (!email) return;
+            {isOwner && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const formData = new FormData(form);
+                  const email = formData.get('email')?.toString().trim();
+                  if (!email) return;
     
-                await fetch('/api/projects.mjs', {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    id: project.id,
-                    visibility: 'public',
-                    collaborators: [...(project.collaborators || []), email]
-                  })
-                });
+                  await fetch('/api/projects.mjs', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: project.id,
+                      visibility: 'public',
+                      collaborators: [...(project.collaborators || []), email]
+                    })
+                  });
     
-                await fetchProjects();
-                form.reset();
-              }}
-              className="flex gap-4 items-center"
-            >
-              <input
-                type="email"
-                name="email"
-                placeholder="Add collaborator email"
-                required
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  await fetchProjects();
+                  form.reset();
+                }}
+                className="flex gap-4 items-center"
               >
-                Add Collaborator
-              </button>
-            </form>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Add collaborator email"
+                  required
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                >
+                  Add Collaborator
+                </button>
+              </form>
+            )}
     
             {project.collaborators?.length > 0 && (
               <div className="mt-6">
                 <h4 className={`font-medium ${themeClasses.text} mb-2`}>Current Collaborators</h4>
                 <ul className="list-disc list-inside text-sm text-gray-500">
                   {project.collaborators.map((email, idx) => (
-                    <li key={idx}>{email}</li>
+                    <li key={idx} className="flex justify-between items-center">
+                      <span>{email}</span>
+                      {isOwner && (
+                        <button
+                          onClick={async () => {
+                            const updated = project.collaborators.filter(e => e !== email);
+                            await fetch('/api/projects.mjs', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                id: project.id,
+                                collaborators: updated
+                              })
+                            });
+                            await fetchProjects();
+                          }}
+                          className="text-red-500 text-xs hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </li>
                   ))}
                 </ul>
+              </div>
+            )}
+    
+            {/* New section for non-owners to leave project */}
+            {!isOwner && user?.email && project.collaborators?.includes(user?.email) && (
+              <div className="mt-6">
+                <button
+                  onClick={async () => {
+                    const updated = project.collaborators.filter(e => e !== user?.email);
+                    await fetch('/api/projects.mjs', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        id: project.id,
+                        collaborators: updated
+                      })
+                    });
+                    await fetchProjects();
+                    navigate('/dashboard');
+                  }}
+                  className="text-red-500 hover:underline text-sm"
+                >
+                  Leave Project
+                </button>
               </div>
             )}
           </div>
         </div>
       )
-    }
+    }    
   ];
 
   return (
