@@ -439,10 +439,18 @@ export default function ProjectDetails() {
       if (!project?.tags?.length) return;
 
       try {
-        const res = await fetch(`/api/connections.ts`, {
+        await fetch('/api/connections', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tags: project.tags })
+          body: JSON.stringify({
+            title: project.title,
+            tags: project.tags,
+            stage: project.stage,
+            industry: project.tags.join(', '), // optional: depends on what Gemini prompt expects
+            description: project.description,
+            problem: project.problem,
+            targetAudience: project.targetAudience,
+          })
         });
 
         const data = await res.json();
