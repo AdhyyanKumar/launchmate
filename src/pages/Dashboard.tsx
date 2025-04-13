@@ -297,7 +297,8 @@ function Dashboard() {
                       {project.visibility === 'private' ? (
                         <div
                           className="px-4 py-2 space-y-2"
-                          onClick={(e) => e.stopPropagation()} // prevents click from bubbling up to card
+                          onClick={(e) => e.stopPropagation()} // prevent card click
+                          onMouseDown={(e) => e.stopPropagation()} // extra safety
                         >
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Share with Email
@@ -309,8 +310,9 @@ function Dashboard() {
                             onChange={(e) =>
                               setEmailInput((prev) => ({ ...prev, [project.id]: e.target.value }))
                             }
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                            onClick={(e) => e.stopPropagation()} // again here just to be safe
                           />
                           <button
                             className="w-full px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700"
@@ -358,6 +360,7 @@ function Dashboard() {
                           Make Private
                         </button>
                       )}
+
 
                       <button
                         onClick={(e) => {
