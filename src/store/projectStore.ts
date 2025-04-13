@@ -19,6 +19,7 @@ export interface Project {
   milestones?: {
     [phaseId: string]: {
       title: string;
+      description: string;
       dueDate: string;
       completed?: boolean;
       tasks: {
@@ -26,7 +27,7 @@ export interface Project {
         completed: boolean;
       }[];
     }[];
-  };  
+  };
 }
 
 interface ProjectState {
@@ -52,24 +53,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   loadProjects: async () => {
     const { user } = useAuthStore.getState();
-
-    console.log('Loading projects for user:', user);
-
-    if (!user?.email || typeof user.email !== 'string') {
-      console.warn('Missing or invalid user email in loadProjects');
-      return;
-    }
-
+    if (!user?.email || typeof user.email !== 'string') return;
     set({ loading: true });
-
     try {
       const res = await fetch(`/api/projects?email=${user.email}`);
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("Failed to load projects:", text);
-        return;
-      }
-
       const data = await res.json();
       const mapped = data.map((p: any) => ({
         ...p,
@@ -88,39 +75,41 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   addProject: async (projectWithoutId) => {
     try {
+      const defaultMilestones = {
+        idea: [
+          {
+            title: 'Idea Development',
+            description: 'Flesh out your idea and conduct initial research',
+            tasks: [
+              { title: 'Define core problem and solution', completed: false },
+              { title: 'Research market size and potential', completed: false },
+              { title: 'Identify target audience', completed: false },
+              { title: 'Document initial business model', completed: false },
+            ],
+            dueDate: new Date().toISOString(),
+            completed: false
+          }
+        ]
+      };
+
       const res = await fetch('/api/projects.mjs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectWithoutId),
+        body: JSON.stringify({ ...projectWithoutId, milestones: defaultMilestones })
       });
 
       const text = await res.text();
-      let savedProject;
-
-      try {
-        savedProject = JSON.parse(text);
-      } catch (err) {
-        console.error("Failed to parse response:", text);
-        return null;
-      }
-
-      if (!res.ok) {
-        console.error("Project create error:", savedProject.error || text);
-        return null;
-      }
+      const savedProject = JSON.parse(text);
 
       const fullProject: Project = {
         ...savedProject,
         id: savedProject.insertedId || savedProject.id || savedProject._id,
       };
 
-      set((state) => ({
-        projects: [fullProject, ...state.projects],
-      }));
-
+      set((state) => ({ projects: [fullProject, ...state.projects] }));
       return fullProject;
     } catch (error) {
-      console.error("Error adding project:", error);
+      console.error('Error adding project:', error);
       return null;
     }
   },
@@ -174,9 +163,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   toggleFavorite: (id) =>
     set((state) => ({
       projects: state.projects.map((project) =>
-        project.id === id
-          ? { ...project, favorite: !project.favorite }
-          : project
+        project.id === id ? { ...project, favorite: !project.favorite } : project
       ),
     })),
 
@@ -193,47 +180,42 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ),
     })),
 
-    toggleMilestoneTask: (
-      projectId: string,
-      phaseId: string,
-      milestoneTitle: string,
-      taskIndex: number
-    ) => {
-      set((state) => {
-        const updatedProjects = state.projects.map((project) => {
-          if (project.id !== projectId) return project;
-  
-          // Clone project
-          const updatedProject = { ...project };
-          const phaseMilestones = updatedProject.milestones?.[phaseId] || [];
-  
-          const updatedMilestones = phaseMilestones.map((milestone) => {
-            if (milestone.title !== milestoneTitle) return milestone;
-  
-            const updatedTasks = milestone.tasks.map((task, index) =>
-              index === taskIndex
-                ? { ...task, completed: !task.completed }
-                : task
-            );
-  
-            const updatedMilestone = {
-              ...milestone,
-              tasks: updatedTasks,
-              completed: updatedTasks.every((t) => t.completed),
-            };
-  
-            return updatedMilestone;
-          });
-  
-          // Save updated milestones to phase
-          updatedProject.milestones = {
-            ...updatedProject.milestones,
-            [phaseId]: updatedMilestones,
+  toggleMilestoneTask: (
+    projectId,
+    phaseId,
+    milestoneTitle,
+    taskIndex
+  ) => {
+    set((state) => {
+      const updatedProjects = state.projects.map((project) => {
+        if (project.id !== projectId) return project;
+
+        const updatedProject = { ...project };
+        const phaseMilestones = updatedProject.milestones?.[phaseId] || [];
+
+        const updatedMilestones = phaseMilestones.map((milestone) => {
+          if (milestone.title !== milestoneTitle) return milestone;
+
+          const updatedTasks = milestone.tasks.map((task, index) =>
+            index === taskIndex ? { ...task, completed: !task.completed } : task
+          );
+
+          return {
+            ...milestone,
+            tasks: updatedTasks,
+            completed: updatedTasks.every((t) => t.completed),
           };
-  
-          return updatedProject;
         });
-  
-        return { projects: updatedProjects };
-      })},
+
+        updatedProject.milestones = {
+          ...updatedProject.milestones,
+          [phaseId]: updatedMilestones,
+        };
+
+        return updatedProject;
+      });
+
+      return { projects: updatedProjects };
+    });
+  }
 }));

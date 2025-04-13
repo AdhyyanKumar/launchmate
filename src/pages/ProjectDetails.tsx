@@ -524,7 +524,7 @@ export default function ProjectDetails() {
 
   const currentPhase = project.stage || 'idea';
   const currentPhaseIndex = phases.findIndex(phase => phase.id === currentPhase);
-  const projectMilestones = milestones[currentPhase] || [];
+  const projectMilestones = project.milestones?.[currentPhase] || [];
   const completedMilestones = projectMilestones.filter(m => m.completed).length;
   const totalMilestones = projectMilestones.length;
 
