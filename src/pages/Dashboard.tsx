@@ -341,13 +341,13 @@ function Dashboard() {
     <div className="h-screen flex">
       {/* Sidebar - Fixed */}
       <div className={`w-64 ${getThemeClasses().sidebar} border-r ${getThemeClasses().border} flex flex-col`}>
-        {/* Logo
+        {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Rocket className="h-6 w-6 text-indigo-600" />
             <span className={`text-xl font-semibold ${getThemeClasses().text}`}>LaunchMate</span>
           </div>
-        </div> */}
+        </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
@@ -503,9 +503,6 @@ function Dashboard() {
                   )}
                 </div>
               )}
-              <div className="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center text-white">
-                U
-              </div>
             </div>
           </div>
 
