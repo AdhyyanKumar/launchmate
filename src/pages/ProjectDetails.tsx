@@ -524,6 +524,26 @@ export default function ProjectDetails() {
 
   const currentPhase = project.stage || 'idea';
   const currentPhaseIndex = phases.findIndex(phase => phase.id === currentPhase);
+  // TEMP fallback for old projects without milestones
+if (!project.milestones) {
+  project.milestones = {
+    idea: [
+      {
+        title: 'Idea Development',
+        description: 'Flesh out your idea and conduct initial research',
+        tasks: [
+          { title: 'Define core problem and solution', completed: false },
+          { title: 'Research market size and potential', completed: false },
+          { title: 'Identify target audience', completed: false },
+          { title: 'Document initial business model', completed: false },
+        ],
+        dueDate: new Date().toISOString(),
+        completed: false,
+      },
+    ]
+  };
+}
+
   const projectMilestones = project.milestones?.[currentPhase] || [];
   const completedMilestones = projectMilestones.filter(m => m.completed).length;
   const totalMilestones = projectMilestones.length;
