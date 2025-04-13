@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import HelpPage from './pages/HelpPage';
 import ProjectDetails from './pages/ProjectDetails';
+import AboutPage from './pages/AboutPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
@@ -51,6 +52,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
   );
