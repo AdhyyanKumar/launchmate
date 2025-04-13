@@ -141,10 +141,12 @@ const phases = [
 
 const PitchParametersForm = ({
   onSubmit,
-  themeClasses
+  themeClasses,
+  loading
 }: {
   onSubmit: (params: PitchParameters) => void;
   themeClasses: any;
+  loading: boolean;
 }) => {
   const [params, setParams] = useState<PitchParameters>({
     audience: '',
@@ -222,9 +224,10 @@ const PitchParametersForm = ({
       </div>
       <button
         type="submit"
-        className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700"
+        className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+        disabled={loading}
       >
-        Generate Pitch Deck
+        {loading ? "Generating..." : "Generate Pitch"}
       </button>
     </form>
   );
@@ -355,6 +358,8 @@ export default function ProjectDetails() {
   const { user } = useAuthStore();
   const [aiPitch, setAiPitch] = useState('');
   const [aiUpdates, setAiUpdates] = useState('');
+  const [loading, setLoading] = useState(false);
+
 
   const project = projects.find(p => p.id === id);
   if (!project) {
@@ -374,37 +379,37 @@ export default function ProjectDetails() {
     );
   }
 
-  useEffect(() => {
-    const runGemini = async () => {
-      if (!project) return;
+  // useEffect(() => {
+  //   const runGemini = async () => {
+  //     if (!project) return;
 
-      const pitch = await generateElevatorPitch(
-        {
-          title: project.title,
-          description: project.description,
-          problem: project.problem,
-          targetAudience: project.targetAudience,
-          tags: project.tags
-        },
-        {
-          audience: 'investors',
-          venue: 'demo day',
-          goal: 'funding',
-          duration: '1'
-        }
-      );
+  //     const pitch = await generateElevatorPitch(
+  //       {
+  //         title: project.title,
+  //         description: project.description,
+  //         problem: project.problem,
+  //         targetAudience: project.targetAudience,
+  //         tags: project.tags
+  //       },
+  //       {
+  //         audience: 'investors',
+  //         venue: 'demo day',
+  //         goal: 'funding',
+  //         duration: '1'
+  //       }
+  //     );
 
-      const updates = await generateProjectUpdates({
-        title: project.title,
-        tags: project.tags
-      });
+  //     const updates = await generateProjectUpdates({
+  //       title: project.title,
+  //       tags: project.tags
+  //     });
 
-      setAiPitch(pitch);
-      setAiUpdates(updates);
-    };
+  //     setAiPitch(pitch);
+  //     setAiUpdates(updates);
+  //   };
 
-    runGemini();
-  }, [project]);
+  //   runGemini();
+  // }, [project]);
 
   // 👇 Milestone expansion toggle per-project
   const toggleMilestone = (projectId: string, milestoneTitle: string) => {
@@ -655,17 +660,24 @@ export default function ProjectDetails() {
                 </h4>
                 <PitchParametersForm
                   onSubmit={async (params) => {
-                    const { theme } = useThemeStore();
-                    const themeClasses = getThemeClasses(theme);
-                    const pitch = await generateElevatorPitch(project, params);
-                    setAiPitch(pitch);
+                    setLoading(true);
+                    try {
+                      const pitch = await generateElevatorPitch(project, params);
+                      setAiPitch(pitch);
+                    } catch (err) {
+                      console.error("Error generating pitch:", err);
+                    } finally {
+                      setLoading(false);
+                    }
                   }}
                   themeClasses={themeClasses}
+                  loading={loading} // pass it down to control button state
                 />
+
                 {aiPitch && (
                   <div className={`${themeClasses.card} p-4 rounded-lg border ${themeClasses.border}`}>
                     <h4 className={`font-medium ${themeClasses.text} mb-2`}>Gemini Elevator Pitch</h4>
-                    <p className="text-sm ${themeClasses.subtext} whitespace-pre-line">{aiPitch}</p>
+                    <p className={`text-sm ${themeClasses.subtext} whitespace-pre-line`}>{aiPitch}</p>
                   </div>
                 )}
               </div>
