@@ -371,28 +371,67 @@ export default function ProjectDetails() {
   const isOwner = project.ownerEmail === user?.email;
 
   useEffect(() => {
-    const runAIUpdateIfNoneExist = async () => {
-      if (!project || project.aiUpdates?.length > 0) return;
-      try {
-        const updateText = await generateProjectUpdates({
-          title: project.title,
-          tags: project.tags
-        });
-
-        await fetch('/api/updates.mjs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: project.id, content: updateText })
-        });
-
-        await loadProjects(); // refresh store to reflect new update
-      } catch (err) {
-        console.error('Failed to auto-generate update:', err);
+    const ensureMinimumAIUpdates = async () => {
+      if (!project || !project.id) return;
+  
+      let updates = project.aiUpdates || [];
+      let count = updates.length;
+  
+      while (count < 3) {
+        try {
+          const updateText = await generateProjectUpdates({
+            title: project.title,
+            tags: project.tags
+          });
+  
+          const res = await fetch('/api/updates.mjs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: project.id, content: updateText })
+          });
+  
+          if (!res.ok) {
+            console.error('Failed to POST update:', await res.text());
+            break;
+          }
+  
+          // Reload fresh project data
+          await loadProjects();
+          const refreshed = useProjectStore.getState().projects.find(p => p.id === project.id);
+          updates = refreshed?.aiUpdates || [];
+          count = updates.length;
+  
+        } catch (err) {
+          console.error('Error generating or storing update:', err);
+          break;
+        }
       }
     };
-
-    runAIUpdateIfNoneExist();
+  
+    ensureMinimumAIUpdates();
   }, [project]);
+  
+  
+
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      if (!project || !project.id) return;
+      try {
+        const res = await fetch(`/api/updates.mjs?id=${project.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAiUpdates(data.aiUpdates || []);
+        } else {
+          console.error('Failed to fetch updates');
+        }
+      } catch (err) {
+        console.error('Error fetching updates:', err);
+      }
+    };
+  
+    fetchUpdates();
+  }, [project]);
+  
 
   // useEffect(() => {
   //   const runGemini = async () => {
