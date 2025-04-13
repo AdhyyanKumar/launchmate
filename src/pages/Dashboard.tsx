@@ -167,20 +167,7 @@ function Dashboard() {
           deleteProject(projectId);
         }
         break;
-      }
-      case 'togglePrivacy': {
-        await fetch('/api/projects.mjs', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: projectId,
-            visibility: project.visibility === 'private' ? 'public' : 'private'
-          })
-        });
-      
-        await loadProjects();
-        break;
-      }      
+      }    
     }
   };
 
@@ -279,74 +266,6 @@ function Dashboard() {
                         <Pencil className="h-4 w-4" />
                         Rename
                       </button>
-                      {project.visibility === 'private' ? (
-                        <div
-                          className="px-4 py-2 space-y-2"
-                          onClick={(e) => e.stopPropagation()} // prevent card click
-                          onMouseDown={(e) => e.stopPropagation()} // extra safety
-                        >
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Share with Email
-                          </label>
-                          <input
-                            type="email"
-                            placeholder="Enter collaborator's email"
-                            value={emailInput[project.id] || ''}
-                            onChange={(e) =>
-                              setEmailInput((prev) => ({ ...prev, [project.id]: e.target.value }))
-                            }
-                            onClick={(e) => e.stopPropagation()}
-                            onMouseDown={(e) => e.stopPropagation()}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                          />
-                          <button
-                            className="w-full px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const email = emailInput[project.id]?.trim();
-                              if (!email) return alert('Please enter an email.');
-
-                              await fetch('/api/projects.mjs', {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  id: project.id,
-                                  visibility: 'public',
-                                  collaborators: [...(project.collaborators || []), email],
-                                }),
-                              });
-
-                              setEmailInput((prev) => ({ ...prev, [project.id]: '' }));
-                              await loadProjects();
-                              setShowProjectMenu(null);
-                            }}
-                          >
-                            Share & Make Public
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await fetch('/api/projects.mjs', {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                id: project.id,
-                                visibility: 'private',
-                              }),
-                            });
-                            await loadProjects();
-                            setShowProjectMenu(null);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full dark:text-white dark:hover:bg-gray-800"
-                        >
-                          <Lock className="h-4 w-4" />
-                          Make Private
-                        </button>
-                      )}
-
-
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
